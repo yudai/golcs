@@ -1,29 +1,48 @@
 package lcs
 
 import (
-	"errors"
 	"reflect"
 )
 
-func Lcs(left, right []interface{}) (lcs []interface{}) {
-	table := Table(left, right)
-	lcs, err := LcsFromTable(left, right, table)
-	if err != nil {
-		// error cannot happen here
-		panic(err.Error())
+type Lcs interface {
+	Values() (values []interface{})
+	IndexPairs() (pairs []IndexPair)
+	Length() (length int)
+	Left() (leftValues []interface{})
+	Right() (righttValues []interface{})
+}
+
+type IndexPair struct {
+	Left  int
+	Right int
+}
+
+type lcs struct {
+	left  []interface{}
+	right []interface{}
+	/* for caching */
+	table      [][]int
+	indexPairs []IndexPair
+	values     []interface{}
+}
+
+func New(left, right []interface{}) Lcs {
+	return &lcs{
+		left:       left,
+		right:      right,
+		table:      nil,
+		indexPairs: nil,
+		values:     nil,
 	}
-	return
 }
 
-func Length(left, right []interface{}) (length int) {
-	table := Table(left, right)
-	length = table[len(left)][len(right)]
-	return
-}
+func (lcs *lcs) Table() (table [][]int) {
+	if lcs.table != nil {
+		return lcs.table
+	}
 
-func Table(left, right []interface{}) (table [][]int) {
-	sizeX := len(left) + 1
-	sizeY := len(right) + 1
+	sizeX := len(lcs.left) + 1
+	sizeY := len(lcs.right) + 1
 
 	table = make([][]int, sizeX)
 	for x := 0; x < sizeX; x++ {
@@ -33,48 +52,70 @@ func Table(left, right []interface{}) (table [][]int) {
 	for y := 1; y < sizeY; y++ {
 		for x := 1; x < sizeX; x++ {
 			increment := 0
-			if reflect.DeepEqual(left[x-1], right[y-1]) {
+			if reflect.DeepEqual(lcs.left[x-1], lcs.right[y-1]) {
 				increment = 1
 			}
 			table[x][y] = max(table[x-1][y-1]+increment, table[x-1][y], table[x][y-1])
 		}
 	}
 
+	lcs.table = table
 	return
 }
 
-func LcsFromTable(left, right []interface{}, table [][]int) (lcs []interface{}, err error) {
-	if len(left)+1 != len(table) {
-		return nil, errors.New("Table size and length of first argument doesn't match")
+func (lcs *lcs) Length() (length int) {
+	length = lcs.Table()[len(lcs.left)][len(lcs.right)]
+	return
+}
+
+func (lcs *lcs) IndexPairs() (pairs []IndexPair) {
+	if lcs.indexPairs != nil {
+		return lcs.indexPairs
 	}
-	if len(left) == 0 {
-		return []interface{}{}, nil
-	}
 
-	lcs = make([]interface{}, table[len(table)-1][len(table[0])-1])
+	table := lcs.Table()
+	pairs = make([]IndexPair, table[len(table)-1][len(table[0])-1])
 
-	for x, y := len(left), len(right); x > 0 && y > 0; {
-		decrease := false
-		if reflect.DeepEqual(left[x-1], right[y-1]) {
-			lcs[table[x][y]-1] = left[x-1]
-			decrease = true
-		}
-
-		xDelta := 0
-		if decrease || table[x-1][y] >= table[x][y-1] {
-			xDelta++
-		}
-
-		if decrease || table[x-1][y] < table[x][y-1] {
+	for x, y := len(lcs.left), len(lcs.right); x > 0 && y > 0; {
+		if reflect.DeepEqual(lcs.left[x-1], lcs.right[y-1]) {
+			pairs[table[x][y]-1] = IndexPair{Left: x - 1, Right: y - 1}
+			x--
 			y--
-
-			if y > len(table[x]) {
-				return nil, errors.New("Table size and length of second argument dosn't match")
+		} else {
+			if table[x-1][y] >= table[x][y-1] {
+				x--
+			} else {
+				y--
 			}
 		}
-		x -= xDelta
 	}
 
+	lcs.indexPairs = pairs
+
+	return
+}
+
+func (lcs *lcs) Values() (values []interface{}) {
+	if lcs.values != nil {
+		return lcs.values
+	}
+
+	pairs := lcs.IndexPairs()
+	values = make([]interface{}, len(pairs))
+	for i, pair := range pairs {
+		values[i] = lcs.left[pair.Left]
+	}
+	lcs.values = values
+	return
+}
+
+func (lcs *lcs) Left() (leftValues []interface{}) {
+	leftValues = lcs.left
+	return
+}
+
+func (lcs *lcs) Right() (rightValues []interface{}) {
+	rightValues = lcs.right
 	return
 }
 

@@ -11,46 +11,59 @@ var _ = Describe("Lcs", func() {
 	Describe("Lcs", func() {
 		It("Calculates Longest Common Subsequence", func() {
 			var left, right []interface{}
+			var lcs Lcs
 
 			left = []interface{}{1, 2, 3}
 			right = []interface{}{2, 3}
-			Expect(Lcs(left, right)).To(Equal([]interface{}{2, 3}))
-			Expect(Length(left, right)).To(Equal(2))
+			lcs = New(left, right)
+			Expect(lcs.IndexPairs()).To(Equal([]IndexPair{{1, 0}, {2, 1}}))
+			Expect(lcs.Values()).To(Equal([]interface{}{2, 3}))
+			Expect(lcs.Length()).To(Equal(2))
 
 			left = []interface{}{2, 3}
 			right = []interface{}{1, 2, 3}
-			Expect(Lcs(left, right)).To(Equal([]interface{}{2, 3}))
-			Expect(Length(left, right)).To(Equal(2))
+			lcs = New(left, right)
+			Expect(lcs.IndexPairs()).To(Equal([]IndexPair{{0, 1}, {1, 2}}))
+			Expect(lcs.Values()).To(Equal([]interface{}{2, 3}))
+			Expect(lcs.Length()).To(Equal(2))
 
 			left = []interface{}{2, 3}
 			right = []interface{}{2, 5, 3}
-			Expect(Lcs(left, right)).To(Equal([]interface{}{2, 3}))
-			Expect(Length(left, right)).To(Equal(2))
+			lcs = New(left, right)
+			Expect(lcs.IndexPairs()).To(Equal([]IndexPair{{0, 0}, {1, 2}}))
+			Expect(lcs.Values()).To(Equal([]interface{}{2, 3}))
+			Expect(lcs.Length()).To(Equal(2))
 
 			left = []interface{}{2, 3, 3}
 			right = []interface{}{2, 5, 3}
-			Expect(Lcs(left, right)).To(Equal([]interface{}{2, 3}))
-			Expect(Length(left, right)).To(Equal(2))
+			lcs = New(left, right)
+			Expect(lcs.IndexPairs()).To(Equal([]IndexPair{{0, 0}, {2, 2}}))
+			Expect(lcs.Values()).To(Equal([]interface{}{2, 3}))
+			Expect(lcs.Length()).To(Equal(2))
 
 			left = []interface{}{1, 2, 5, 3, 1, 1, 5, 8, 3}
 			right = []interface{}{1, 2, 3, 3, 4, 4, 5, 1, 6}
-			Expect(Lcs(left, right)).To(Equal([]interface{}{1, 2, 5, 1}))
-			Expect(Length(left, right)).To(Equal(4))
+			lcs = New(left, right)
+			Expect(lcs.Values()).To(Equal([]interface{}{1, 2, 5, 1}))
+			Expect(lcs.Length()).To(Equal(4))
 
 			left = []interface{}{}
 			right = []interface{}{2, 5, 3}
-			Expect(Lcs(left, right)).To(Equal([]interface{}{}))
-			Expect(Length(left, right)).To(Equal(0))
+			lcs = New(left, right)
+			Expect(lcs.Values()).To(Equal([]interface{}{}))
+			Expect(lcs.Length()).To(Equal(0))
 
 			left = []interface{}{3, 4}
 			right = []interface{}{}
-			Expect(Lcs(left, right)).To(Equal([]interface{}{}))
-			Expect(Length(left, right)).To(Equal(0))
+			lcs = New(left, right)
+			Expect(lcs.Values()).To(Equal([]interface{}{}))
+			Expect(lcs.Length()).To(Equal(0))
 
 			left = []interface{}{"foo"}
 			right = []interface{}{"baz", "foo"}
-			Expect(Lcs(left, right)).To(Equal([]interface{}{"foo"}))
-			Expect(Length(left, right)).To(Equal(1))
+			lcs = New(left, right)
+			Expect(lcs.Values()).To(Equal([]interface{}{"foo"}))
+			Expect(lcs.Length()).To(Equal(1))
 
 			leftBytes := []byte("TGAGTA")
 			rightBytes := []byte("GATA")
@@ -62,8 +75,10 @@ var _ = Describe("Lcs", func() {
 			for i, v := range rightBytes {
 				right[i] = v
 			}
-			Expect(Lcs(left, right)).To(Equal([]interface{}{byte('G'), byte('A'), byte('T'), byte('A')}))
-			Expect(Length(left, right)).To(Equal(4))
+			lcs = New(left, right)
+			Expect(lcs.Values()).To(Equal([]interface{}{byte('G'), byte('A'), byte('T'), byte('A')}))
+			Expect(lcs.Length()).To(Equal(4))
+
 		})
 	})
 })

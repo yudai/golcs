@@ -1,5 +1,7 @@
 # Go Longest Common Subsequence (LCS)
 
+A package to calculate [LCS](http://en.wikipedia.org/wiki/Longest_common_subsequence_problem) of slices.
+
 ## Usage
 
 ```sh
@@ -7,14 +9,22 @@ go get github.com/yudai/golcs
 ```
 
 ```go
+import " github.com/yudai/golcs"
+
 left = []interface{}{1, 2, 5, 3, 1, 1, 5, 8, 3}
 right = []interface{}{1, 2, 3, 3, 4, 4, 5, 1, 6}
 
-golcs.Lcs(left, right) // => []interface{}{1, 2, 5, 1}
+lcs := golcs.New(left, right)
 
-// If you just need their LCS length
-golcs.Length(left, right) // => 4
+lcs.Values()     // LCS values       => []interface{}{1, 2, 5, 1}
+lcs.IndexPairs() // Matched indices  => [{Left: 0, Right: 0}, {Left: 1, Right: 1}, {Left: 2, Right: 6}, {Left: 4, Right: 7}]
+lcs.Length()     // Matched length   => 4
+
+lcs.Table()      // Memo table
 ```
+
+All the methods of `Lcs` cache their return values. For example, the memo table is calculated only once and reused when `Values()`, `Length()` and other methods are called.
+
 
 ## FAQ
 
@@ -35,7 +45,7 @@ for i, v := range rightBytes {
 	right[i] = v
 }
 
-Lcs(left, right)
+lcs.New(left, right)
 ```
 
 
