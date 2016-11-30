@@ -1,6 +1,8 @@
 package lcs_test
 
 import (
+	"strings"
+
 	. "github.com/yudai/golcs"
 
 	. "github.com/onsi/ginkgo"
@@ -78,6 +80,22 @@ var _ = Describe("Lcs", func() {
 			lcs = New(left, right)
 			Expect(lcs.Values()).To(Equal([]interface{}{byte('G'), byte('A'), byte('T'), byte('A')}))
 			Expect(lcs.Length()).To(Equal(4))
+
+			big := strings.Repeat("a", 100000)
+			leftBytes = []byte(big)
+			rightBytes = []byte(big)
+			rightBytes[0] = 'b'
+			rightBytes[len(rightBytes)-1] = 'b'
+			left = make([]interface{}, len(leftBytes))
+			for i, v := range leftBytes {
+				left[i] = v
+			}
+			right = make([]interface{}, len(rightBytes))
+			for i, v := range rightBytes {
+				right[i] = v
+			}
+			lcs = New(left, right)
+			Expect(lcs.Length()).To(Equal(len(big) - 2))
 
 		})
 	})
