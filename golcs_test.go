@@ -1,9 +1,10 @@
 package lcs
 
 import (
+	"context"
 	"reflect"
-	"strings"
 	"testing"
+	"time"
 )
 
 func TestLCS(t *testing.T) {
@@ -99,23 +100,22 @@ func TestLCS(t *testing.T) {
 	}
 }
 
-func TestBigItems(t *testing.T) {
-	big := strings.Repeat("a", 100000)
-	leftBytes := []byte(big)
-	rightBytes := []byte(big)
-	rightBytes[0] = 'b'
-	rightBytes[len(rightBytes)-1] = 'b'
-	left := make([]interface{}, len(leftBytes))
-	for i, v := range leftBytes {
-		left[i] = v
-	}
-	right := make([]interface{}, len(rightBytes))
-	for i, v := range rightBytes {
-		right[i] = v
-	}
+func TestContextCancel(t *testing.T) {
+	left := make([]interface{}, 100000) // takes over 1 sec
+	right := make([]interface{}, 100000)
+	right[0] = 1
+	right[len(right)-1] = 1
 	lcs := New(left, right)
-	actualLength := lcs.Length()
-	if actualLength != len(big)-2 {
-		t.Fatalf("unexpected LCS length: %d", actualLength)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		time.Sleep(time.Second)
+		cancel()
+	}()
+
+	_, err := lcs.LengthContext(ctx)
+	if err != context.Canceled {
+		t.Fatalf("unexpected err: %s", err)
 	}
 }
