@@ -1,6 +1,7 @@
 package lcs
 
 import (
+	"context"
 	"reflect"
 )
 
@@ -37,8 +38,13 @@ func New(left, right []interface{}) Lcs {
 }
 
 func (lcs *lcs) Table() (table [][]int) {
+	table, _ = lcs.TableContext(context.Background())
+	return table
+}
+
+func (lcs *lcs) TableContext(ctx context.Context) (table [][]int, err error) {
 	if lcs.table != nil {
-		return lcs.table
+		return lcs.table, nil
 	}
 
 	sizeX := len(lcs.left) + 1
@@ -50,6 +56,12 @@ func (lcs *lcs) Table() (table [][]int) {
 	}
 
 	for y := 1; y < sizeY; y++ {
+		select { // check in each y to save some time
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			// nop
+		}
 		for x := 1; x < sizeX; x++ {
 			increment := 0
 			if reflect.DeepEqual(lcs.left[x-1], lcs.right[y-1]) {
@@ -60,20 +72,37 @@ func (lcs *lcs) Table() (table [][]int) {
 	}
 
 	lcs.table = table
-	return
+	return table, nil
 }
 
 func (lcs *lcs) Length() (length int) {
-	length = lcs.Table()[len(lcs.left)][len(lcs.right)]
-	return
+	length, _ = lcs.LengthContext(context.Background())
+	return length
+}
+
+func (lcs *lcs) LengthContext(ctx context.Context) (length int, err error) {
+	table, err := lcs.TableContext(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return table[len(lcs.left)][len(lcs.right)], nil
 }
 
 func (lcs *lcs) IndexPairs() (pairs []IndexPair) {
+	pairs, _ = lcs.IndexPairsContext(context.Background())
+	return pairs
+}
+
+func (lcs *lcs) IndexPairsContext(ctx context.Context) (pairs []IndexPair, err error) {
 	if lcs.indexPairs != nil {
-		return lcs.indexPairs
+		return lcs.indexPairs, nil
 	}
 
-	table := lcs.Table()
+	table, err := lcs.TableContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	pairs = make([]IndexPair, table[len(table)-1][len(table[0])-1])
 
 	for x, y := len(lcs.left), len(lcs.right); x > 0 && y > 0; {
@@ -92,21 +121,31 @@ func (lcs *lcs) IndexPairs() (pairs []IndexPair) {
 
 	lcs.indexPairs = pairs
 
-	return
+	return pairs, nil
 }
 
 func (lcs *lcs) Values() (values []interface{}) {
+	values, _ = lcs.ValuesContext(context.Background())
+	return values
+}
+
+func (lcs *lcs) ValuesContext(ctx context.Context) (values []interface{}, err error) {
 	if lcs.values != nil {
-		return lcs.values
+		return lcs.values, nil
 	}
 
-	pairs := lcs.IndexPairs()
+	pairs, err := lcs.IndexPairsContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	values = make([]interface{}, len(pairs))
 	for i, pair := range pairs {
 		values[i] = lcs.left[pair.Left]
 	}
 	lcs.values = values
-	return
+
+	return values, nil
 }
 
 func (lcs *lcs) Left() (leftValues []interface{}) {
