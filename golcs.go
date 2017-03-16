@@ -7,8 +7,11 @@ import (
 
 type Lcs interface {
 	Values() (values []interface{})
+	ValuesContext(ctx context.Context) (values []interface{}, err error)
 	IndexPairs() (pairs []IndexPair)
+	IndexPairsContext(ctx context.Context) (pairs []IndexPair, err error)
 	Length() (length int)
+	LengthContext(ctx context.Context) (length int, err error)
 	Left() (leftValues []interface{})
 	Right() (righttValues []interface{})
 }
