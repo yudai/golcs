@@ -1,84 +1,99 @@
-package lcs_test
+package lcs
 
 import (
-	. "github.com/yudai/golcs"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"reflect"
+	"testing"
 )
 
-var _ = Describe("Lcs", func() {
-	Describe("Lcs", func() {
-		It("Calculates Longest Common Subsequence", func() {
-			var left, right []interface{}
-			var lcs Lcs
+func TestLCS(t *testing.T) {
+	cases := []struct {
+		left       []interface{}
+		right      []interface{}
+		indexPairs []IndexPair
+		values     []interface{}
+		length     int
+	}{
+		{
+			left:       []interface{}{1, 2, 3},
+			right:      []interface{}{2, 3},
+			indexPairs: []IndexPair{{1, 0}, {2, 1}},
+			values:     []interface{}{2, 3},
+			length:     2,
+		},
+		{
+			left:       []interface{}{2, 3},
+			right:      []interface{}{1, 2, 3},
+			indexPairs: []IndexPair{{0, 1}, {1, 2}},
+			values:     []interface{}{2, 3},
+			length:     2,
+		},
+		{
+			left:       []interface{}{2, 3},
+			right:      []interface{}{2, 5, 3},
+			indexPairs: []IndexPair{{0, 0}, {1, 2}},
+			values:     []interface{}{2, 3},
+			length:     2,
+		},
+		{
+			left:       []interface{}{2, 3, 3},
+			right:      []interface{}{2, 5, 3},
+			indexPairs: []IndexPair{{0, 0}, {2, 2}},
+			values:     []interface{}{2, 3},
+			length:     2,
+		},
+		{
+			left:       []interface{}{1, 2, 5, 3, 1, 1, 5, 8, 3},
+			right:      []interface{}{1, 2, 3, 3, 4, 4, 5, 1, 6},
+			indexPairs: []IndexPair{{0, 0}, {1, 1}, {2, 6}, {4, 7}},
+			values:     []interface{}{1, 2, 5, 1},
+			length:     4,
+		},
+		{
+			left:       []interface{}{},
+			right:      []interface{}{2, 5, 3},
+			indexPairs: []IndexPair{},
+			values:     []interface{}{},
+			length:     0,
+		},
+		{
+			left:       []interface{}{3, 4},
+			right:      []interface{}{},
+			indexPairs: []IndexPair{},
+			values:     []interface{}{},
+			length:     0,
+		},
+		{
+			left:       []interface{}{"foo"},
+			right:      []interface{}{"baz", "foo"},
+			indexPairs: []IndexPair{{0, 1}},
+			values:     []interface{}{"foo"},
+			length:     1,
+		},
+		{
+			left:       []interface{}{byte('T'), byte('G'), byte('A'), byte('G'), byte('T'), byte('A')},
+			right:      []interface{}{byte('G'), byte('A'), byte('T'), byte('A')},
+			indexPairs: []IndexPair{{1, 0}, {2, 1}, {4, 2}, {5, 3}},
+			values:     []interface{}{byte('G'), byte('A'), byte('T'), byte('A')},
+			length:     4,
+		},
+	}
 
-			left = []interface{}{1, 2, 3}
-			right = []interface{}{2, 3}
-			lcs = New(left, right)
-			Expect(lcs.IndexPairs()).To(Equal([]IndexPair{{1, 0}, {2, 1}}))
-			Expect(lcs.Values()).To(Equal([]interface{}{2, 3}))
-			Expect(lcs.Length()).To(Equal(2))
+	for i, c := range cases {
+		lcs := New(c.left, c.right)
 
-			left = []interface{}{2, 3}
-			right = []interface{}{1, 2, 3}
-			lcs = New(left, right)
-			Expect(lcs.IndexPairs()).To(Equal([]IndexPair{{0, 1}, {1, 2}}))
-			Expect(lcs.Values()).To(Equal([]interface{}{2, 3}))
-			Expect(lcs.Length()).To(Equal(2))
+		actualPairs := lcs.IndexPairs()
+		if !reflect.DeepEqual(actualPairs, c.indexPairs) {
+			t.Errorf("test case %d failed at index pair, actual: %#v, expected: %#v", i, actualPairs, c.indexPairs)
+		}
 
-			left = []interface{}{2, 3}
-			right = []interface{}{2, 5, 3}
-			lcs = New(left, right)
-			Expect(lcs.IndexPairs()).To(Equal([]IndexPair{{0, 0}, {1, 2}}))
-			Expect(lcs.Values()).To(Equal([]interface{}{2, 3}))
-			Expect(lcs.Length()).To(Equal(2))
+		actualValues := lcs.Values()
+		if !reflect.DeepEqual(actualValues, c.values) {
+			t.Errorf("test case %d failed at values, actual: %#v, expected: %#v", i, actualValues, c.values)
+		}
 
-			left = []interface{}{2, 3, 3}
-			right = []interface{}{2, 5, 3}
-			lcs = New(left, right)
-			Expect(lcs.IndexPairs()).To(Equal([]IndexPair{{0, 0}, {2, 2}}))
-			Expect(lcs.Values()).To(Equal([]interface{}{2, 3}))
-			Expect(lcs.Length()).To(Equal(2))
-
-			left = []interface{}{1, 2, 5, 3, 1, 1, 5, 8, 3}
-			right = []interface{}{1, 2, 3, 3, 4, 4, 5, 1, 6}
-			lcs = New(left, right)
-			Expect(lcs.Values()).To(Equal([]interface{}{1, 2, 5, 1}))
-			Expect(lcs.Length()).To(Equal(4))
-
-			left = []interface{}{}
-			right = []interface{}{2, 5, 3}
-			lcs = New(left, right)
-			Expect(lcs.Values()).To(Equal([]interface{}{}))
-			Expect(lcs.Length()).To(Equal(0))
-
-			left = []interface{}{3, 4}
-			right = []interface{}{}
-			lcs = New(left, right)
-			Expect(lcs.Values()).To(Equal([]interface{}{}))
-			Expect(lcs.Length()).To(Equal(0))
-
-			left = []interface{}{"foo"}
-			right = []interface{}{"baz", "foo"}
-			lcs = New(left, right)
-			Expect(lcs.Values()).To(Equal([]interface{}{"foo"}))
-			Expect(lcs.Length()).To(Equal(1))
-
-			leftBytes := []byte("TGAGTA")
-			rightBytes := []byte("GATA")
-			left = make([]interface{}, len(leftBytes))
-			for i, v := range leftBytes {
-				left[i] = v
-			}
-			right = make([]interface{}, len(rightBytes))
-			for i, v := range rightBytes {
-				right[i] = v
-			}
-			lcs = New(left, right)
-			Expect(lcs.Values()).To(Equal([]interface{}{byte('G'), byte('A'), byte('T'), byte('A')}))
-			Expect(lcs.Length()).To(Equal(4))
-
-		})
-	})
-})
+		actualLength := lcs.Length()
+		if actualLength != c.length {
+			t.Errorf("test case %d failed at length, actual: %d, expected: %d", i, actualLength, c.length)
+		}
+	}
+}
