@@ -2,6 +2,7 @@ package lcs
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -95,5 +96,26 @@ func TestLCS(t *testing.T) {
 		if actualLength != c.length {
 			t.Errorf("test case %d failed at length, actual: %d, expected: %d", i, actualLength, c.length)
 		}
+	}
+}
+
+func TestBigItems(t *testing.T) {
+	big := strings.Repeat("a", 100000)
+	leftBytes := []byte(big)
+	rightBytes := []byte(big)
+	rightBytes[0] = 'b'
+	rightBytes[len(rightBytes)-1] = 'b'
+	left := make([]interface{}, len(leftBytes))
+	for i, v := range leftBytes {
+		left[i] = v
+	}
+	right := make([]interface{}, len(rightBytes))
+	for i, v := range rightBytes {
+		right[i] = v
+	}
+	lcs := New(left, right)
+	actualLength := lcs.Length()
+	if actualLength != len(big)-2 {
+		t.Fatalf("unexpected LCS length: %d", actualLength)
 	}
 }
