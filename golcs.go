@@ -99,13 +99,47 @@ func (lcs *lcs) Length() (length int) {
 	return length
 }
 
+func (lcs *lcs) lengthContext(ctx context.Context) (length int, err error) {
+	m := len(lcs.left)
+	n := len(lcs.right)
+
+	// allocate storage for one-dimensional array `curr`
+	prev := 0
+	curr := make([]int, n+1)
+
+	// fill the lookup table in a bottom-up manner
+	for i := 0; i <= m; i++ {
+		select { // check in each y to save some time
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		default:
+			// nop
+		}
+		prev = curr[0]
+		for j := 0; j <= n; j++ {
+			backup := curr[j]
+			if i == 0 || j == 0 {
+				curr[j] = 0
+			} else if reflect.DeepEqual(lcs.left[i-1], lcs.right[j-1]) {
+				// if the current character of `X` and `Y` matches
+				curr[j] = prev + 1
+			} else {
+				// otherwise, if the current character of `X` and `Y` don't match
+				curr[j] = max(curr[j], curr[j-1])
+			}
+			prev = backup
+		}
+	}
+	// LCS will be the last entry in the lookup table
+	return curr[n], nil
+}
+
 // Table implements Lcs.LengthContext()
 func (lcs *lcs) LengthContext(ctx context.Context) (length int, err error) {
-	table, err := lcs.TableContext(ctx)
-	if err != nil {
-		return 0, err
+	if len(lcs.right) > len(lcs.left) {
+		lcs.left, lcs.right = lcs.right, lcs.left
 	}
-	return table[len(lcs.left)][len(lcs.right)], nil
+	return lcs.lengthContext(ctx)
 }
 
 // Table implements Lcs.IndexPairs()
